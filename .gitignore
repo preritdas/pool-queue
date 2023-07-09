@@ -1,0 +1,17 @@
+venv/
+win_venv/
+wsl_venv/
+
+# Private IDE config files
+.vscode/
+
+# Private key files
+keys.yaml
+
+__pycache__/
+
+# Coverage
+.coverage
+
+# Misc
+.DS_Store
