@@ -33,3 +33,10 @@ class Player(BaseModel):
             raise PlayerNotFoundError("phone number", phone_number)
 
         return cls(**player)
+
+    @classmethod
+    def register(cls, name: str, phone_number: str):
+        """Register a new player. Phone number must be in 12223334455 format."""
+        player = cls(name=name, phone_number=phone_number)
+        PLAYER_COLL.insert_one(player.model_dump())
+        return player
