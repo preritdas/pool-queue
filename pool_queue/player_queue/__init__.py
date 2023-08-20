@@ -78,10 +78,12 @@ class PlayerQueue(BaseModel):
         player: dict = next(filter(lambda p: p["player_phone"] == player_phone, players))
         return players.index(player) + 1
 
-    def find_next_player(self) -> Player:
-        """Find the next player in the queue."""
-        phone = QUEUE_COLL.find_one({})["players"][0]["player_phone"]
-        return Player.from_phone(phone)
+    def find_next_player(self) -> Player | None:
+        """Find the next player in the queue. Returns None if the queue is empty."""
+        if len(queue := self.get_queue()) == 0:
+            return None
+
+        return queue[0]
 
     def remove(self, player: Player | str) -> bool:
         """
