@@ -39,6 +39,11 @@ class PlayerQueue(BaseModel):
         player_phone = player.phone_number if isinstance(player, Player) else player
         return bool(QUEUE_COLL.find_one({"players.player_phone": player_phone}))
 
+    def get_queue(self) -> list[Player]:
+        """Get the queue."""
+        players: list[dict] = QUEUE_COLL.find_one({})["players"]
+        return [Player.from_phone(p["player_phone"]) for p in players]
+
     def add(self, player: Player | str) -> bool:
         """
         Add a player to the queue. `player` can be a Player object or a phone number.
