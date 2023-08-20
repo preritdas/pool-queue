@@ -63,7 +63,6 @@ class Game(BaseModel):
             challenger=Player.from_phone(game["challenger"]),
             status=GameStatus(game["status"])
         )
-        
 
     @classmethod
     def create(cls, king: Player, challenger: Player):
@@ -81,3 +80,15 @@ class Game(BaseModel):
         )
 
         return cls.from_game_id(res.inserted_id)
+    
+    def check_status(self) -> GameStatus:
+        """Check the status of the game."""
+        return GameStatus(PLAYER_COLL.find_one({"_id": self.game_id})["status"])
+
+    def update_status(self, status: GameStatus):
+        """Update the status of the game."""
+        self.status = status
+        PLAYER_COLL.update_one(
+            {"_id": self.game_id},
+            {"$set": {"status": status.value}}
+        )
