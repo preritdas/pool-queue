@@ -2,7 +2,7 @@
 import os
 import yaml
 
-from pool_queue.keys import models
+from keys import models
 
 
 keys_path = os.path.join(
