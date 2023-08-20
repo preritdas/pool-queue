@@ -27,6 +27,7 @@ def create_registration_tool(player_phone: str) -> type[BaseTool]:
 # - leave queue
 # - check position in queue
 # - see full queue
+# - start game
 # - end game
 # - confirm inbound challenger
 
@@ -78,3 +79,12 @@ def create_tools(player: Player) -> list[type[BaseTool]]:
 
             return f"Player is in position {position}."
         
+    class SeeFullQueueTool(BaseTool):
+        """See the full queue."""
+        name = "See Full Queue"
+        description = "See the names of all players in order in the queue."
+
+        def _run(self):
+            queue: list[Player] = player_queue.get_queue()
+            queue_str = "\n".join([f"{i}. {p.name}" for i, p in enumerate(queue, 1)])
+            return f"Queue:\n{queue_str}"
