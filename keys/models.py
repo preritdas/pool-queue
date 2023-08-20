@@ -10,5 +10,11 @@ from pydantic import BaseModel
 # Keys needed at least for Twilio and for OpenAI.
 
 
+class MongoDBModel(BaseModel):
+    """Credentials to connect to Pool Queue project and database."""
+    connect_str: str
+
+
 class Keys(BaseModel):
     """Overall keys."""
+    MongoDB: MongoDBModel
