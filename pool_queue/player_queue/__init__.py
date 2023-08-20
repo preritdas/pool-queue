@@ -64,12 +64,11 @@ class PlayerQueue(BaseModel):
         Get the position of a player in the queue. `player` can be a Player object or a
         phone number. Returns -1 if the player is not in the queue.
         """
-        player_phone = player.phone_number if isinstance(player, Player) else player
-
         # Check if the player is in the queue
         if not self.player_in_queue(player_phone):
             return -1
 
+        player_phone = player.phone_number if isinstance(player, Player) else player
         players: list[dict] = QUEUE_COLL.find_one({})["players"]
         player: dict = next(filter(lambda p: p["player_phone"] == player_phone, players))
         return players.index(player) + 1
@@ -79,13 +78,22 @@ class PlayerQueue(BaseModel):
         phone = QUEUE_COLL.find_one({})["players"][0]["player_phone"]
         return Player.from_phone(phone)
 
-    def remove(self, player: Player | str) -> None:
-        """Remove a player from the queue."""
+    def remove(self, player: Player | str) -> bool:
+        """
+        Remove a player from the queue. Returns True if the player was removed, 
+        False if the player was not in the queue.
+        """
+        # Check if the player is in the queue
+        if not self.player_in_queue(player):
+            return False
+
         player_phone = player.phone_number if isinstance(player, Player) else player
         QUEUE_COLL.update_one(
             {},
             {"$pull": {"players": {"player_phone": player_phone}}}
         )
+
+        return True
 
     def daily_clear(cls) -> None:
         """Clear the queue of all players added before 4am."""
