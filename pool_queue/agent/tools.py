@@ -2,6 +2,7 @@
 from langchain.tools import BaseTool
 
 from pool_queue.player import Player
+from pool_queue.player_queue import PlayerQueue
 
 
 def create_registration_tool(player_phone: str) -> type[BaseTool]:
@@ -21,6 +22,59 @@ def create_registration_tool(player_phone: str) -> type[BaseTool]:
     return RegisterPlayerTool
 
 
+# Necessary tools:
+# - join queue
+# - leave queue
+# - check position in queue
+# - see full queue
+# - end game
+# - confirm inbound challenger
+
 
 def create_tools(player: Player) -> list[type[BaseTool]]:
-    """Create the tools for the agent to use. Returns a list of tool classes."""
+    """
+    Create the tools for the agent to use. Returns a list of tool classes.
+
+    The player queue can be daily cleared here because tools are built for every
+    inbound request.
+    """
+    player_queue = PlayerQueue()
+    player_queue.daily_clear()
+
+    class JoinQueueTool(BaseTool):
+        """Join the queue."""
+        name = "Join Queue"
+        description = "Join the queue to play a game."
+
+        def _run(self):
+            if not player_queue.add(player):
+                return (
+                    "Player is already in the queue, position "
+                    f"{player_queue.get_position(player)}"
+                )
+            
+            return f"Player added to queue, position {player_queue.get_position(player)}."
+
+    class LeaveQueueTool(BaseTool):
+        """Leave the queue."""
+        name = "Leave Queue"
+        description = "Leave the queue."
+
+        def _run(self):
+            if not player_queue.remove(player):
+                return "Player was not in the queue."
+
+            return "Player removed from queue."
+
+    class CheckPositionTool(BaseTool):
+        """Check position in queue."""
+        name = "Check Position"
+        description = "Check position in queue."
+
+        def _run(self):
+            position = player_queue.get_position(player)
+            if position == -1:
+                return "Player is not in the queue."
+
+            return f"Player is in position {position}."
+        
