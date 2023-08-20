@@ -31,11 +31,25 @@ class QueueItem(BaseModel):
 class PlayerQueue(BaseModel):
     """Queue of players."""
 
-    def add(self, player: Player | str) -> None:
+    def player_in_queue(self, player: Player | str) -> bool:
         """
-        Add a player to the queue. `player` can be a Player object or a phone number.
+        Check if a player is in the queue. `player` can be a Player object or a phone
+        number.
         """
         player_phone = player.phone_number if isinstance(player, Player) else player
+        return bool(QUEUE_COLL.find_one({"players.player_phone": player_phone}))
+
+    def add(self, player: Player | str) -> bool:
+        """
+        Add a player to the queue. `player` can be a Player object or a phone number.
+        Returns True if the player was added, False if the player was already in the
+        queue.
+        """
+        player_phone = player.phone_number if isinstance(player, Player) else player
+
+        # Check if the player is already in the queue
+        if self.player_in_queue(player_phone):
+            return False
 
         item = QueueItem(player_phone=player_phone, datetime_added=datetime.now())
         QUEUE_COLL.update_one(
@@ -43,12 +57,31 @@ class PlayerQueue(BaseModel):
             {"$push": {"players": item.model_dump()}}
         )
 
-    def find_next_player(self) -> str:
-        """Find the next player in the queue."""
-        return QUEUE_COLL.find_one({})["players"][0]["player_phone"]
+        return True
 
-    def remove(self, player_phone: str) -> None:
+    def get_position(self, player: Player | str) -> int:
+        """
+        Get the position of a player in the queue. `player` can be a Player object or a
+        phone number. Returns -1 if the player is not in the queue.
+        """
+        player_phone = player.phone_number if isinstance(player, Player) else player
+
+        # Check if the player is in the queue
+        if not self.player_in_queue(player_phone):
+            return -1
+
+        players: list[dict] = QUEUE_COLL.find_one({})["players"]
+        player: dict = next(filter(lambda p: p["player_phone"] == player_phone, players))
+        return players.index(player) + 1
+
+    def find_next_player(self) -> Player:
+        """Find the next player in the queue."""
+        phone = QUEUE_COLL.find_one({})["players"][0]["player_phone"]
+        return Player.from_phone(phone)
+
+    def remove(self, player: Player | str) -> None:
         """Remove a player from the queue."""
+        player_phone = player.phone_number if isinstance(player, Player) else player
         QUEUE_COLL.update_one(
             {},
             {"$pull": {"players": {"player_phone": player_phone}}}
