@@ -8,6 +8,7 @@ from pydantic import BaseModel
 from datetime import datetime
 
 from keys import KEYS
+from pool_queue.player import Player
 
 
 # Create a connection to the database queue collection
@@ -30,8 +31,12 @@ class QueueItem(BaseModel):
 class PlayerQueue(BaseModel):
     """Queue of players."""
 
-    def add(self, player_phone: str) -> None:
-        """Add a player to the queue."""
+    def add(self, player: Player | str) -> None:
+        """
+        Add a player to the queue. `player` can be a Player object or a phone number.
+        """
+        player_phone = player.phone_number if isinstance(player, Player) else player
+
         item = QueueItem(player_phone=player_phone, datetime_added=datetime.now())
         QUEUE_COLL.update_one(
             {},
