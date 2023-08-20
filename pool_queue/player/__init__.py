@@ -1,7 +1,9 @@
 """Player class, interfaces with the database."""
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 from pymongo import MongoClient
+
 from keys import KEYS
+from pool_queue.utils import validate_phone_number
 
 
 # Create a connection to the database players collection
@@ -20,6 +22,11 @@ class Player(BaseModel):
     phone_number: str
     in_queue: bool = False
     in_game: bool = False
+
+    @field_validator("phone_number")
+    def validate_phone_number(cls, phone):
+        """Ensure phone number is in 12223334455 format."""
+        return validate_phone_number(phone)
 
     @classmethod
     def from_phone(cls, phone_number: str):
