@@ -7,5 +7,8 @@ is a BaseModel class with the keys (and private settings) for that service.
 from pydantic import BaseModel
 
 
+# Keys needed at least for Twilio and for OpenAI.
+
+
 class Keys(BaseModel):
     """Overall keys."""
