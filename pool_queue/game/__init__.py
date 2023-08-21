@@ -43,7 +43,7 @@ class Game(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
     @classmethod
-    def from_game_id(cls, object_id: str | ObjectId):
+    def _from_game_id(cls, object_id: str | ObjectId) -> "Game":
         """
         Get a game from it's database ID. If no player is found, raise
         PlayerNotFoundError.
@@ -65,7 +65,19 @@ class Game(BaseModel):
         )
 
     @classmethod
-    def create(cls, king: Player, challenger: Player):
+    def from_only_active(cls) -> "Game":
+        """
+        Get the only active game. If no game is found, raise GameNotFoundError.
+        """
+        game = PLAYER_COLL.find_one({"status": GameStatus.IN_PROGRESS.value})
+
+        if game is None:
+            raise GameNotFoundError("status", GameStatus.IN_PROGRESS.value)
+        
+        return cls._from_game_id(game["_id"])
+
+    @classmethod
+    def create(cls, king: Player, challenger: Player) -> "Game":
         """
         Create a new pending game. This should happen when a game has just finished 
         and a new game needs to be created, involving the winner of the last 
@@ -79,7 +91,7 @@ class Game(BaseModel):
             }
         )
 
-        return cls.from_game_id(res.inserted_id)
+        return cls._from_game_id(res.inserted_id)
     
     def check_status(self) -> GameStatus:
         """Check the status of the game."""
