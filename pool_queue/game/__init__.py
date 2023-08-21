@@ -77,6 +77,18 @@ class Game(BaseModel):
         return cls._from_game_id(game["_id"])
 
     @classmethod
+    def from_only_pending(cls) -> "Game":
+        """
+        Get the only pending game. If no game is found, raise GameNotFoundError.
+        """
+        game = PLAYER_COLL.find_one({"status": GameStatus.PENDING_CHALLENGER.value})
+
+        if game is None:
+            raise GameNotFoundError("status", GameStatus.PENDING_CHALLENGER.value)
+        
+        return cls._from_game_id(game["_id"]
+
+    @classmethod
     def create(cls, king: Player, challenger: Player) -> "Game":
         """
         Create a new pending game. This should happen when a game has just finished 
