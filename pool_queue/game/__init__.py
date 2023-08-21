@@ -86,7 +86,7 @@ class Game(BaseModel):
         if game is None:
             raise GameNotFoundError("status", GameStatus.PENDING_CHALLENGER.value)
         
-        return cls._from_game_id(game["_id"]
+        return cls._from_game_id(game["_id"])
 
     @classmethod
     def create(cls, king: Player, challenger: Player) -> "Game":
