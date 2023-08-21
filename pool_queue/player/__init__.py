@@ -47,3 +47,6 @@ class Player(BaseModel):
         player = cls(name=name, phone_number=phone_number)
         PLAYER_COLL.insert_one(player.model_dump())
         return player
+
+    def __eq__(self, __value: object) -> bool:
+        return self.phone_number == __value.phone_number
