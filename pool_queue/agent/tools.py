@@ -1,7 +1,10 @@
 """All tools for the users to use with the agent."""
 from langchain.tools import BaseTool
 
-from pool_queue.player import Player
+from threading import Thread
+
+from pool_queue.player import Player, PlayerNotFoundError
+from pool_queue.game import Game, GameNotFoundError, GameStatus
 from pool_queue.player_queue import PlayerQueue
 
 
@@ -88,3 +91,110 @@ def create_tools(player: Player) -> list[type[BaseTool]]:
             queue: list[Player] = player_queue.get_queue()
             queue_str = "\n".join([f"{i}. {p.name}" for i, p in enumerate(queue, 1)])
             return f"Queue:\n{queue_str}"
+
+    class StartGameTool(BaseTool):
+        """Start a game when none exist."""
+        name = "Start Game"
+        description = (
+            "Create the first game of the day, when none exist. Input must the phone "
+            "number of the user's opponent. If the phone number is not provided, ask the "
+            "user for the phone number."
+        )
+
+        def _run(self, opponent_phone: str):
+            try:
+                Game.from_only_active()
+                return (
+                    "Game already exists, cannot use this tool. "
+                    "End the last active game by having the loser declare themselves."
+                )
+            except GameNotFoundError:
+                try:
+                    opponent = Player.from_phone(opponent_phone)
+                except PlayerNotFoundError:
+                    return "Opponent has not registered. Have them text me to register first."
+                game = Game.create(king=player, challenger=opponent)
+                return (
+                    f"Game created. King: {game.king.name}, Challenger: "
+                    f"{game.challenger.name}"
+                )
+
+    class LostMatchEndGameTool(BaseTool):
+        """End the game when the king loses."""
+        name = "Lost Match, End Game"
+        description = (
+            "The loser of the active match will use this tool to specify that they lost "
+            "the match. The game will then be ended and a new game will be started with "
+            "the next player in the queue to challenge the winner of the last match."
+        )
+
+        def _run(self):
+            try:
+                game = Game.from_only_active()
+            except GameNotFoundError:
+                return (
+                    "No game exists. Use the 'Start Game' tool to start a new game."
+                )
+
+            # Determine winner and loser
+            winner = game.challenger if game.king == player else game.king
+
+            # Mark game as finshed
+            game.update_status(GameStatus.FINISHED)
+
+            # Start next game
+            next_challenger = player_queue.find_next_player()
+            if not next_challenger:
+                return (
+                    "Game ended. No players in queue to challenge the winner, "
+                    "feel free to play again."
+                )
+
+            next_game = Game.create(king=winner, challenger=next_challenger)
+            print("awaiting confirmation")
+
+            return (
+                f"Game ended. The next player in the queue, {next_challenger.name}, "
+                f"has two minutes to come to the table and be confirmed by "
+                f"{winner.name}. They can say '{next_challenger.name} is here' or "
+                "'next player is here' etc."
+            )
+
+    class ConfirmInboundChallengerTool(BaseTool):
+        """Confirm the inbound challenger."""
+        name = "Confirm Inbound Challenger"
+        description = (
+            "The winner of the last match will use this tool to confirm the next player "
+            "in the queue as the challenger. This tool will only work if the next player "
+            "in the queue has used the 'Start Game' tool and is waiting to be confirmed."
+        )
+
+        def _run(self):
+            try:
+                game = Game.from_only_pending()
+            except GameNotFoundError:
+                return (
+                    "No game exists. Use the 'Start Game' tool to start a new game."
+                )
+
+            # Make sure user is the king
+            if game.king != player:
+                return "Only the king can confirm the inbound challenger."
+
+            # Mark game as finshed
+            game.update_status(GameStatus.IN_PROGRESS)
+
+            return (
+                f"Confirmed. The game has begun between {game.king.name} and "
+                f"{game.challenger.name}. Good luck."
+            )
+
+    return [
+        JoinQueueTool,
+        LeaveQueueTool,
+        CheckPositionTool,
+        SeeFullQueueTool,
+        StartGameTool,
+        LostMatchEndGameTool,
+        ConfirmInboundChallengerTool
+    ]
