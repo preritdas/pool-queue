@@ -139,7 +139,7 @@ def create_tools(player: Player) -> list[BaseTool]:
                     opponent = Player.from_phone(opponent_phone)
                 except PlayerNotFoundError:
                     return "Opponent has not registered. Have them text me to register first."
-                game = Game.create(king=player, challenger=opponent)
+                game = Game.create(king=player, challenger=opponent, force_active=True)
                 return (
                     f"Game created. King: {game.king.name}, Challenger: "
                     f"{game.challenger.name}"
