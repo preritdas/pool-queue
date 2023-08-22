@@ -28,7 +28,7 @@ class ChatHistory(BaseModel):
         """Get the chat history for a user."""
         # Empty list if user has no history
         if not HISTORY_COLL.find_one({"phone_number": phone_number}): 
-            return cls(messages=[])
+            return cls(phone_number, messages=[])
 
         res = HISTORY_COLL.find_one({"phone_number": phone_number})
         return cls(
