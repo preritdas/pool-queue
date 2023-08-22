@@ -20,8 +20,6 @@ class Player(BaseModel):
     """A pool player in or out of the queue."""
     name: str
     phone_number: str
-    in_queue: bool = False
-    in_game: bool = False
 
     @field_validator("phone_number")
     def validate_phone_number(cls, phone):
