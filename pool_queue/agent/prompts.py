@@ -1,5 +1,6 @@
 """Building prompts for the agent."""
 from pool_queue.player import Player
+from pool_queue.agent.history import ChatHistory
 
 
 prefix = lambda: """
@@ -80,11 +81,15 @@ Note that I will only receive your "Final Answer" so if there's any information 
 If you are responding with a "Thought", you must ALWAYS include either an "Action" or "Final Answer" with it. You may not respond with only a "Thought". You can never have both an "Action" and a "Final Answer". Each "Action" requires an "Action Input", even if the "Action Input" is "n/a".
 """
 
-suffix = lambda: """
-Begin! 
+suffix = lambda chat_history: f"""
+Below is your chat history with the user who has messaged you.
 
-Input: {input}
-{agent_scratchpad}
+=== Chat History ===
+{chat_history}
+=== End Chat History ===
+
+Input: {{input}}
+{{agent_scratchpad}}
 """
 
 
@@ -96,18 +101,18 @@ class AgentPrompts:
         self.suffix = suffix
 
     @classmethod
-    def build(cls, player: Player | None) -> "AgentPrompts":
+    def build(cls, player: Player | None, chat_history: ChatHistory) -> "AgentPrompts":
         """Build the prompts."""
         if not player:
             return cls(
                 prefix=registration_prefix(),
                 format_instructions=format_instructions(),
-                suffix=suffix()
+                suffix=suffix(chat_history.as_string())
             )
         
         return cls(
             prefix=prefix(),
             format_instructions=format_instructions(),
-            suffix=suffix()
+            suffix=suffix(chat_history.as_string())
         )
         
