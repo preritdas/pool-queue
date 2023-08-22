@@ -35,12 +35,14 @@ def create_agent_executor(
     )
 
 
-def run_agent(player_phone: str) -> str:
+def run_agent(query: str, player_phone: str) -> str:
     """Run the agent."""
     try:
         player = Player.from_phone(player_phone)
         tools = create_tools(player)
     except PlayerNotFoundError:
         tools = [create_registration_tool(player_phone)]
+        player = None
 
     agent_executor = create_agent_executor(tools, player)
+    return agent_executor.run(query)
