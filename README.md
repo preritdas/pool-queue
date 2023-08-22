@@ -1,4 +1,13 @@
-# Product Idea: Pool Queue
+# Pool Queue
+
+
+## To-do
+
+1. Connect Twilio, and implement calling logic to call the next person in the queue and wait for confirmation from the last king, and move to the next person in the queue if the confirmation is not received within a certain time frame.
+2. Implement endpoints for inbound text messages, and logic to respond via text.
+3. Deploy to GCP.
+
+## Idea
 
 **1. Product Name:**
 Pool Queue (Play on words: Pool Cue, Pool Queue)
