@@ -57,12 +57,28 @@ def create_tools(player: Player) -> list[BaseTool]:
         description = "Join the queue to play a game. Takes no input, so input n/a."
 
         def _run(self, query: str):
+            # If there is no active game, they need to start one, not join the queue
+            try: 
+                Game.from_only_active()
+            except GameNotFoundError:
+                return (
+                    "Looks like nobody's playing right now, so you can head to the "
+                    "table and start a match. Let me know that you're starting, "
+                    "and give me your opponent's phone number so we can get the "
+                    "queue going. On the other hand, if this is an error and there "
+                    "is a game going on, have one of the players text me to start "
+                    "a match, with the phone number of the opponent they're currently "
+                    "playing. Then, you can join the queue, and the loser of their "
+                    "match can tell me he/she lost to automatically call you to the "
+                    "table."
+                )
+
             if not player_queue.add(player):
                 return (
                     "Player is already in the queue, position "
                     f"{player_queue.get_position(player)}"
                 )
-            
+
             return f"Player added to queue, position {player_queue.get_position(player)}."
 
     class LeaveQueueTool(BaseTool):
@@ -103,11 +119,12 @@ def create_tools(player: Player) -> list[BaseTool]:
 
     class StartGameTool(BaseTool):
         """Start a game when none exist."""
-        name = "Start Game"
+        name = "Start First Game"
         description = (
             "Create the first game of the day, when none exist. Input must the phone "
             "number of the user's opponent. If the phone number is not provided, ask the "
-            "user for the phone number."
+            "user for the phone number. This tool is only used to create a game if "
+            "nobody is actively playing."
         )
 
         def _run(self, opponent_phone: str):
