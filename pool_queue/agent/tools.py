@@ -8,7 +8,7 @@ from pool_queue.game import Game, GameNotFoundError, GameStatus
 from pool_queue.player_queue import PlayerQueue
 
 
-def create_registration_tool(player_phone: str) -> type[BaseTool]:
+def create_registration_tool(player_phone: str) -> BaseTool:
     """Create the registration tool for the agent to use."""
 
     class RegisterPlayerTool(BaseTool):
@@ -22,7 +22,7 @@ def create_registration_tool(player_phone: str) -> type[BaseTool]:
         def _run(self, name: str):
             Player.register(name=name, phone_number=player_phone)
 
-    return RegisterPlayerTool
+    return RegisterPlayerTool()
 
 
 # Necessary tools:
@@ -35,9 +35,9 @@ def create_registration_tool(player_phone: str) -> type[BaseTool]:
 # - confirm inbound challenger
 
 
-def create_tools(player: Player) -> list[type[BaseTool]]:
+def create_tools(player: Player) -> list[BaseTool]:
     """
-    Create the tools for the agent to use. Returns a list of tool classes.
+    Create the tools for the agent to use. Returns a list of tools.
 
     The player queue can be daily cleared here because tools are built for every
     inbound request.
@@ -190,11 +190,11 @@ def create_tools(player: Player) -> list[type[BaseTool]]:
             )
 
     return [
-        JoinQueueTool,
-        LeaveQueueTool,
-        CheckPositionTool,
-        SeeFullQueueTool,
-        StartGameTool,
-        LostMatchEndGameTool,
-        ConfirmInboundChallengerTool
+        JoinQueueTool(),
+        LeaveQueueTool(),
+        CheckPositionTool(),
+        SeeFullQueueTool(),
+        StartGameTool(),
+        LostMatchEndGameTool(),
+        ConfirmInboundChallengerTool()
     ]
