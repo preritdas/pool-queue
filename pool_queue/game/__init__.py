@@ -89,11 +89,15 @@ class Game(BaseModel):
         return cls._from_game_id(game["_id"])
 
     @classmethod
-    def create(cls, king: Player, challenger: Player) -> "Game":
+    def create(cls, king: Player, challenger: Player, force_active: bool = False) -> "Game":
         """
         Create a new pending game. This should happen when a game has just finished 
         and a new game needs to be created, involving the winner of the last 
         match and the next person in the queue.
+
+        If force_active is True, the game will be created as active, rather than
+        pending. This should only be used when a game is being created for the first
+        time.
         """
         res = PLAYER_COLL.insert_one(
             {
