@@ -22,7 +22,7 @@ def create_registration_tool(player_phone: str) -> BaseTool:
         )
 
         def _run(self, name: str):
-            if name == "n/a":  # sometimes agent will mess up
+            if "n/a" in name:  # sometimes agent will mess up
                 return "Player name must be provided."
 
             Player.register(name=name, phone_number=player_phone)
