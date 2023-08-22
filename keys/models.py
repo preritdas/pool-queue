@@ -15,6 +15,12 @@ class MongoDBModel(BaseModel):
     connect_str: str
 
 
+class OpenAI(BaseModel):
+    """Credentials for OpenAI API."""
+    api_key: str
+
+
 class Keys(BaseModel):
     """Overall keys."""
     MongoDB: MongoDBModel
+    OpenAI: OpenAI
