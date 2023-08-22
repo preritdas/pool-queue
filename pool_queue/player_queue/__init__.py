@@ -69,11 +69,12 @@ class PlayerQueue(BaseModel):
         Get the position of a player in the queue. `player` can be a Player object or a
         phone number. Returns -1 if the player is not in the queue.
         """
+        player_phone = player.phone_number if isinstance(player, Player) else player
+
         # Check if the player is in the queue
         if not self.player_in_queue(player_phone):
             return -1
 
-        player_phone = player.phone_number if isinstance(player, Player) else player
         players: list[dict] = QUEUE_COLL.find_one({})["players"]
         player: dict = next(filter(lambda p: p["player_phone"] == player_phone, players))
         return players.index(player) + 1
