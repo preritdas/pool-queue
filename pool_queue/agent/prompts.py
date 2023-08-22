@@ -85,8 +85,6 @@ Input: {input}
 """
 
 
-
-
 class AgentPrompts:
     """Building prompts for the agent."""
     def __init__(self, prefix: str, format_instructions: str, suffix: str) -> None:
