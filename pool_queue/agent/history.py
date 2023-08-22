@@ -50,3 +50,10 @@ class ChatHistory(BaseModel):
         """Get the chat history."""
         self = ChatHistory.from_phone(self.phone_number)
         return self
+
+    def as_string(self) -> str:
+        """Get the chat history as a string."""
+        self.update()
+        return "\n".join(
+            f"{message.sender}: {message.content}" for message in self.messages
+        )
