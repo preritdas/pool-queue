@@ -7,6 +7,7 @@ from pool_queue.agent.custom_agent import InternalThoughtZeroShotAgent
 from pool_queue.agent.prompts import AgentPrompts
 from pool_queue.agent.tools import create_registration_tool, create_tools
 from pool_queue.player import Player, PlayerNotFoundError
+from pool_queue.agent.history import ChatHistory, Message
 
 from keys import KEYS
 
@@ -16,10 +17,11 @@ llm = ChatOpenAI(model_name="gpt-4", openai_api_key=KEYS.OpenAI.api_key, tempera
 
 def create_agent_executor(
     toolkit: list[Tool],
-    player: Player | None
+    player: Player | None,
+    chat_history: ChatHistory
 ) -> AgentExecutor:
     """Create the agent given authenticated tools."""
-    agent_prompts = AgentPrompts.build(player)
+    agent_prompts = AgentPrompts.build(player, chat_history=chat_history)
     agent = InternalThoughtZeroShotAgent.from_llm_and_tools(
         llm=llm,
         tools=toolkit,
@@ -44,5 +46,12 @@ def run_agent(query: str, player_phone: str) -> str:
         tools = [create_registration_tool(player_phone)]
         player = None
 
-    agent_executor = create_agent_executor(tools, player)
-    return agent_executor.run(query)
+    chat_history = ChatHistory.from_phone(player_phone)
+    agent_executor = create_agent_executor(tools, player, chat_history)
+    response = agent_executor.run(query)
+
+    # Add the query and response to the chat history
+    chat_history.add(Message(phone_number=player_phone, content=query, sender="user"))
+    chat_history.add(Message(phone_number=player_phone, content=response, sender="agent"))
+
+    return response
