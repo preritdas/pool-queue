@@ -7,7 +7,7 @@ uvicorn==0.23.2
 pydantic==2.2.1  # v2 depends on LangChain compatibility, if using
 
 # Agent
-langchain==0.0.298
+langchain==0.0.299
 openai==0.28.0
 
 # Database
